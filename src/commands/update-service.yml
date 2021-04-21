@@ -173,7 +173,7 @@ steps:
               ECS_PARAM_CD_LOAD_BALANCED_CONTAINER_PORT: <<parameters.codedeploy-load-balanced-container-port>>
               ECS_PARAM_VERIFY_REV_DEPLOY: <<parameters.verify-revision-is-deployed>>
 
-      no_output_timeout: << parameters.verification-timeout >>
+          no_output_timeout: << parameters.verification-timeout >>
   - when:
       condition:
         equal:
