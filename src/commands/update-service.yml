@@ -32,6 +32,12 @@ parameters:
       Only effective when the deployment-controller parameter value is "CODE_DEPLOY".
     type: string
     default: ''
+  codedeploy-deployment-config-name:
+    description: >
+      The name of the group's deployment config.
+      Only effective when the deployment-controller parameter value is "CODE_DEPLOY".
+    type: string
+    default: ''
   codedeploy-load-balanced-container-name:
     description: >
       The name of the container to be load-balanced via AWS CodeDeploy.
@@ -169,6 +175,7 @@ steps:
               DEPLOYMENT_CONTROLLER: <<parameters.deployment-controller>>
               ECS_PARAM_CD_APP_NAME: <<parameters.codedeploy-application-name>>
               ECS_PARAM_CD_DEPLOY_GROUP_NAME: <<parameters.codedeploy-deployment-group-name>>
+              ECS_PARAM_CD_DEPLOY_CONFIG_NAME: <<parameters.codedeploy-deployment-config-name>>
               ECS_PARAM_CD_LOAD_BALANCED_CONTAINER_NAME: <<parameters.codedeploy-load-balanced-container-name>>
               ECS_PARAM_CD_LOAD_BALANCED_CONTAINER_PORT: <<parameters.codedeploy-load-balanced-container-port>>
               ECS_PARAM_VERIFY_REV_DEPLOY: <<parameters.verify-revision-is-deployed>>
