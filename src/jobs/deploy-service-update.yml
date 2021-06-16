@@ -184,6 +184,7 @@ steps:
       deployment-controller: << parameters.deployment-controller >>
       codedeploy-application-name: << parameters.codedeploy-application-name >>
       codedeploy-deployment-group-name: << parameters.codedeploy-deployment-group-name >>
+      codedeploy-deployment-config-name: << parameters.codedeploy-deployment-config-name >>
       codedeploy-load-balanced-container-name: << parameters.codedeploy-load-balanced-container-name >>
       codedeploy-load-balanced-container-port: << parameters.codedeploy-load-balanced-container-port >>
       container-image-name-updates: << parameters.container-image-name-updates >>
