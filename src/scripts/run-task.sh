@@ -1,6 +1,16 @@
+if [[ $EUID == 0 ]]; then export SUDO=""; else export SUDO="sudo"; fi
 # These variables are evaluated so the config file may contain and pass in environment variables to the parameters.
 ECS_PARAM_CLUSTER_NAME=$(eval echo "$ECS_PARAM_CLUSTER_NAME")
 ECS_PARAM_TASK_DEF=$(eval echo "$ECS_PARAM_TASK_DEF")
+ECS_PARAM_PROFILE_NAME=$(eval echo "$ECS_PARAM_PROFILE_NAME")
+
+if ! command -v envsubst && [[ "$ECS_PARAM_OVERRIDES" == *"\${"* ]]; then
+    echo "Installing envsubst."
+    curl -L https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst-"$(uname -s)"-"$(uname -m)" -o envsubst
+    $SUDO chmod +x envsubst
+    $SUDO mv envsubst /usr/local/bin
+    ECS_PARAM_OVERRIDES=$(echo "${ECS_PARAM_OVERRIDES}" | envsubst)
+fi
 
 set -o noglob
 if [ -n "$ECS_PARAM_PLATFORM_VERSION" ]; then
@@ -50,15 +60,15 @@ if [ "$ECS_PARAM_AWSVPC" == "1" ]; then
     ECS_PARAM_SEC_GROUP_ID=$(eval echo "$ECS_PARAM_SEC_GROUP_ID")
     set -- "$@" --network-configuration awsvpcConfiguration="{subnets=[$ECS_PARAM_SUBNET_ID],securityGroups=[$ECS_PARAM_SEC_GROUP_ID],assignPublicIp=$ECS_PARAM_ASSIGN_PUB_IP}"
 fi
-if [ -n "$ECS_PARAM_CAPACITY_PROVIDER_STRATEGY" ]; then
+if [ -n "$ECS_PARAM_CD_CAPACITY_PROVIDER_STRATEGY" ]; then
     echo "Setting --capacity-provider-strategy"
     # do not quote
     # shellcheck disable=SC2086
-    set -- "$@" --capacity-provider-strategy $ECS_PARAM_CAPACITY_PROVIDER_STRATEGY
+    set -- "$@" --capacity-provider-strategy $ECS_PARAM_CD_CAPACITY_PROVIDER_STRATEGY
 fi
 
 if [ -n "$ECS_PARAM_LAUNCH_TYPE" ]; then
-    if [ -n "$ECS_PARAM_CAPACITY_PROVIDER_STRATEGY" ]; then
+    if [ -n "$ECS_PARAM_CD_CAPACITY_PROVIDER_STRATEGY" ]; then
         echo "Error: "
         echo 'If a "capacity-provider-strategy" is specified, the "launch-type" parameter must be set to an empty string.'
         exit 1
@@ -68,11 +78,20 @@ if [ -n "$ECS_PARAM_LAUNCH_TYPE" ]; then
     fi
 fi
 
+if [ -n "${ECS_PARAM_PROFILE_NAME}" ]; then
+    set -- "$@" --profile "${ECS_PARAM_PROFILE_NAME}"
+fi
+
 echo "Setting --count"
 set -- "$@" --count "$ECS_PARAM_COUNT"
 echo "Setting --task-definition"
-set -- "$@" --task-definition $ECS_PARAM_TASK_DEF
+set -- "$@" --task-definition "$ECS_PARAM_TASK_DEF"
 echo "Setting --cluster"
 set -- "$@" --cluster "$ECS_PARAM_CLUSTER_NAME"
 
-aws ecs run-task "$@"
+
+if [ -n "${ECS_PARAM_RUN_TASK_OUTPUT}" ]; then
+    aws ecs run-task "$@" | tee "${ECS_PARAM_RUN_TASK_OUTPUT}"
+else    
+    aws ecs run-task "$@"
+fi

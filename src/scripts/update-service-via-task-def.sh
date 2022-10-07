@@ -4,6 +4,7 @@ set -o noglob
 ECS_PARAM_FAMILY=$(eval echo "$ECS_PARAM_FAMILY")
 ECS_PARAM_CLUSTER_NAME=$(eval echo "$ECS_PARAM_CLUSTER_NAME")
 ECS_PARAM_SERVICE_NAME=$(eval echo "$ECS_PARAM_SERVICE_NAME")
+ECS_PARAM_PROFILE_NAME=$(eval echo "$ECS_PARAM_PROFILE_NAME")
 
 if [ -z "${ECS_PARAM_SERVICE_NAME}" ]; then
     ECS_PARAM_SERVICE_NAME="$ECS_PARAM_FAMILY"
@@ -11,6 +12,14 @@ fi
 
 if [ "$ECS_PARAM_FORCE_NEW_DEPLOY" == "1" ]; then
     set -- "$@" --force-new-deployment
+fi
+
+if [ -n "${ECS_PARAM_PROFILE_NAME}" ]; then
+    set -- "$@" --profile "${ECS_PARAM_PROFILE_NAME}"   
+fi
+
+if [ "$ECS_PARAM_ENABLE_CIRCUIT_BREAKER" == "1" ]; then
+    set -- "$@" --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
 fi
 
 DEPLOYED_REVISION=$(aws ecs update-service \

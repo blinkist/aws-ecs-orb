@@ -32,6 +32,38 @@ parameters:
       Values should not contain commas.
     type: string
     default: ''
+  container-secret-updates:
+    description: >
+      Use this to update or set the values of secrets variables that will be
+      defined for the containers.
+      (Existing secrets variables not included in this parameter will not be
+      removed)
+
+      Expected format:
+      container=<container-name>,name=<env-var-name>,valueFrom=<env-var-value>,container=...,name=...,valueFrom=...,
+
+      Values should not contain commas.
+    type: string
+    default: ''
+  container-docker-label-updates:
+    description: >
+      Use this to update or set the values of docker label variables that will be defined for the containers.
+      (Existing secrets variables not included in this parameter will not be removed)
+
+      Expected format:
+      container=<container-name>,<key>=<env-var-name>,<key>=<env-var-value>,container=...,<key>=...,<key>=...,
+
+      Values should not contain commas.
+    type: string
+    default: ''
+  profile-name:
+    description: AWS profile name to be configured.
+    type: string
+    default: ''
+  previous-revision-number:
+    description: Optional previous task's revision number
+    type: string
+    default: ''
 steps:
   - run:
       name: Retrieve previous task definition and prepare new task definition values
@@ -42,10 +74,13 @@ steps:
         ECS_PARAM_CONTAINER_ENV_VAR_UPDATES: <<parameters.container-env-var-updates>>
         ECS_SCRIPT_UPDATE_CONTAINER_DEFS: <<include(scripts/update_container_defs.py)>>
         ECS_SCRIPT_GET_TASK_DFN_VAL: <<include(scripts/get_task_dfn_val.py)>>
-
-
+        ECS_PARAM_PROFILE_NAME: <<parameters.profile-name>>
+        ECS_PARAM_PREVIOUS_REVISION_NUMBER: <<parameters.previous-revision-number>>
+        ECS_PARAM_CONTAINER_SECRET_UPDATES: <<parameters.container-secret-updates>>
+        ECS_PARAM_CONTAINER_DOCKER_LABEL_UPDATES: << parameters.container-docker-label-updates >>
   - run:
       name: Register new task definition
       command: <<include(scripts/register-new-task-def.sh)>>
       environment:
         ECS_PARAM_FAMILY: <<parameters.family>>
+        ECS_PARAM_PROFILE_NAME: <<parameters.profile-name>>
